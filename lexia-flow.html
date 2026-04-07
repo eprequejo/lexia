@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexia — Flujo del producto</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bk:#0B0B0F;--bl:#3B82F6;--gr:#00FFB2;--vi:#7C3AED;--wh:#FFFFFF;--gy:#8A8F98;--dc:#111118;--db:#1E1E2A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);padding:48px 24px;max-width:960px;margin:0 auto;-webkit-font-smoothing:antialiased}
+
+h1{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.sub{color:var(--gy);font-size:14px;margin-bottom:48px}
+h2{font-size:22px;font-weight:700;margin-bottom:24px;display:flex;align-items:center;gap:10px}
+h2 i{font-size:18px}
+h3{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--gy)}
+
+/* FLOW SECTION */
+.flow{position:relative;padding-left:48px;margin-bottom:64px}
+.flow-line{position:absolute;left:19px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--bl),var(--gr),var(--vi));opacity:.2;border-radius:1px}
+.step{position:relative;margin-bottom:32px}
+.step:last-child{margin-bottom:0}
+.step-dot{position:absolute;left:-48px;top:4px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:1px solid var(--db);background:var(--dc);z-index:1}
+.step-content{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:20px 24px;transition:border-color .2s}
+.step-content:hover{border-color:rgba(255,255,255,.1)}
+.step-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.step-actor{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;letter-spacing:.02em}
+.actor-citizen{background:rgba(0,255,178,.08);color:var(--gr)}
+.actor-ai{background:rgba(124,58,237,.08);color:var(--vi)}
+.actor-lawyer{background:rgba(59,130,246,.08);color:var(--bl)}
+.actor-shared{background:rgba(255,255,255,.05);color:var(--gy)}
+.step-title{font-size:15px;font-weight:600}
+.step-desc{font-size:13px;color:var(--gy);line-height:1.6}
+.step-status{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--gy);background:rgba(255,255,255,.03);padding:4px 10px;border-radius:6px;font-family:'DM Sans',monospace}
+.step-status i{font-size:10px}
+
+/* STATUS STATE MACHINE */
+.states{margin-bottom:64px}
+.state-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.state{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--db);background:var(--dc);color:var(--gy);cursor:default;transition:all .25s;position:relative}
+.state:hover{border-color:rgba(255,255,255,.15);color:var(--wh)}
+.state.active{border-color:var(--bl);background:rgba(59,130,246,.08);color:var(--bl)}
+.state.done{border-color:var(--gr);background:rgba(0,255,178,.06);color:var(--gr)}
+.state.cancel{border-color:rgba(248,81,73,.3);background:rgba(248,81,73,.06);color:#f85149}
+
+.state-detail{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:20px 24px;display:none}
+.state-detail.visible{display:block}
+.state-detail h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.state-detail p{font-size:13px;color:var(--gy);line-height:1.6}
+.state-detail .transition{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--gy)}
+.state-detail .transition i{color:var(--vi);font-size:10px}
+
+/* ARROWS BETWEEN STATES */
+.state-flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:24px}
+.state-flow .arrow{color:var(--gy);font-size:12px}
+.state-flow .st{font-size:12px;font-weight:500;padding:6px 14px;border-radius:8px;background:var(--dc);border:1px solid var(--db);color:var(--gy);white-space:nowrap}
+.state-flow .st.bl{border-color:rgba(59,130,246,.2);color:var(--bl);background:rgba(59,130,246,.06)}
+.state-flow .st.gr{border-color:rgba(0,255,178,.2);color:var(--gr);background:rgba(0,255,178,.06)}
+.state-flow .st.rd{border-color:rgba(248,81,73,.2);color:#f85149;background:rgba(248,81,73,.06)}
+
+/* AI ANALYSIS */
+.analysis{margin-bottom:64px}
+.analysis-card{background:var(--dc);border:1px solid var(--db);border-radius:16px;overflow:hidden}
+.analysis-header{padding:20px 24px;border-bottom:1px solid var(--db);display:flex;align-items:center;justify-content:space-between}
+.analysis-header h4{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.analysis-header h4 i{color:var(--vi)}
+.analysis-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:6px}
+.badge-pending{background:rgba(210,153,34,.08);color:#d29922}
+.badge-reviewed{background:rgba(0,255,178,.08);color:var(--gr)}
+
+.analysis-tabs{display:flex;border-bottom:1px solid var(--db)}
+.atab{flex:1;padding:12px 16px;font-size:13px;font-weight:500;color:var(--gy);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.atab:hover{color:var(--wh)}
+.atab.active{color:var(--vi);border-bottom-color:var(--vi)}
+
+.analysis-body{padding:24px}
+.analysis-panel{display:none}
+.analysis-panel.visible{display:block}
+
+.ai-field{margin-bottom:20px}
+.ai-field:last-child{margin-bottom:0}
+.ai-label{font-size:11px;font-weight:600;color:var(--vi);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ai-value{font-size:14px;color:rgba(255,255,255,.85);line-height:1.7}
+.ai-value ul{margin:8px 0 0 20px}
+.ai-value li{margin-bottom:4px;color:var(--gy);font-size:13px}
+.ai-value li strong{color:rgba(255,255,255,.8);font-weight:500}
+
+.ai-law{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.12);border-radius:8px;padding:12px 16px;margin-bottom:8px}
+.ai-law .law-ref{font-size:13px;font-weight:600;color:var(--bl);margin-bottom:2px}
+.ai-law .law-desc{font-size:12px;color:var(--gy);line-height:1.5}
+
+.ai-case{background:rgba(0,255,178,.04);border:1px solid rgba(0,255,178,.1);border-radius:8px;padding:12px 16px;margin-bottom:8px}
+.ai-case .case-ref{font-size:13px;font-weight:600;color:var(--gr);margin-bottom:2px}
+.ai-case .case-desc{font-size:12px;color:var(--gy);line-height:1.5}
+
+.validate-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--bl),var(--vi));color:#fff;border:none;cursor:pointer;transition:all .2s;margin-top:8px}
+.validate-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.3)}
+
+.disclaimer{font-size:11px;color:var(--gy);background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:8px;padding:10px 14px;margin-top:16px;line-height:1.5}
+.disclaimer i{color:var(--vi);margin-right:4px}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+body{padding:32px 16px}
+h1{font-size:24px}
+.flow{padding-left:40px}
+.step-dot{left:-40px;width:32px;height:32px;font-size:11px}
+.state-flow{gap:4px}
+.state-flow .st{font-size:11px;padding:4px 10px}
+}
+</style>
+</head>
+<body>
+
+<h1>Lexia <span style="color:var(--vi);font-weight:400">— flujo del producto</span></h1>
+<p class="sub">Cómo funciona un caso de principio a fin: ciudadano → IA → abogado → resolución</p>
+
+<!-- ============================================ -->
+<!-- SECTION 1: FULL PRODUCT FLOW -->
+<!-- ============================================ -->
+<h2><i class="fas fa-route" style="color:var(--bl)"></i> Flujo completo de un caso</h2>
+
+<div class="flow">
+<div class="flow-line"></div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--gr)">1</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-citizen">Ciudadano</span><span class="step-title">Describe su problema legal</span></div>
+<div class="step-desc">El ciudadano entra en Lexia y describe su caso en un formulario simple, sin tecnicismos. Puede adjuntar documentos.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--gr)"></i> status: new</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--vi)">2</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-ai">Lexia IA</span><span class="step-title">Analiza el caso automáticamente</span></div>
+<div class="step-desc">La IA procesa el caso: identifica el tipo, busca legislación aplicable, jurisprudencia similar y genera una estrategia sugerida. Produce un informe estructurado.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--vi)"></i> status: ai_analysis</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--gr)">3</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-citizen">Ciudadano</span><span class="step-title">Ve el resumen del análisis en su dashboard</span></div>
+<div class="step-desc">El cliente ve un resumen del análisis IA: "Tu caso tiene base legal sólida. Un abogado lo está revisando." No ve el detalle técnico — eso es para el abogado.</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--bl)">4</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-lawyer">Abogado</span><span class="step-title">Recibe y revisa el análisis IA completo</span></div>
+<div class="step-desc">El abogado ve el informe completo: resumen, leyes aplicables, jurisprudencia relevante, estrategia sugerida. Puede validar, corregir o rechazar.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--bl)"></i> status: reviewed</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--bl)">5</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-lawyer">Abogado</span><span class="step-title">Acepta el caso y pone precio</span></div>
+<div class="step-desc">El abogado establece un precio cerrado para el caso. La plataforma notifica al cliente con el precio y los datos del abogado asignado.</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--gr)">6</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-citizen">Ciudadano</span><span class="step-title">Acepta el precio y el abogado</span></div>
+<div class="step-desc">El cliente ve el precio cerrado, el perfil del abogado y acepta. El caso pasa a estar en curso.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--bl)"></i> status: in_progress</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--gy)">7</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-shared">Todos</span><span class="step-title">Caso en curso — comunicación y documentación</span></div>
+<div class="step-desc">Chat entre cliente, abogado y la IA. Subida de documentos. Timeline actualizada. El cliente ve el progreso en tiempo real desde su dashboard. El abogado puede pedir documentos al cliente.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--gy)"></i> status: in_progress ↔ pending_docs</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--bl)">8</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-lawyer">Abogado</span><span class="step-title">Resuelve el caso</span></div>
+<div class="step-desc">El abogado sube la resolución y los documentos finales. El caso queda pendiente de firma.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--vi)"></i> status: pending_signature</div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-dot" style="color:var(--gr)">9</div>
+<div class="step-content">
+<div class="step-head"><span class="step-actor actor-citizen">Ciudadano</span><span class="step-title">Firma digital desde el móvil</span></div>
+<div class="step-desc">El cliente firma digitalmente los documentos finales. Recibe toda la documentación del caso.</div>
+<div class="step-status"><i class="fas fa-circle" style="color:var(--gr)"></i> status: resolved → closed</div>
+</div>
+</div>
+
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: CASE STATUS STATE MACHINE -->
+<!-- ============================================ -->
+<h2><i class="fas fa-diagram-project" style="color:var(--vi)"></i> Estados de un caso</h2>
+
+<h3>Flujo principal</h3>
+<div class="state-flow">
+<span class="st">new</span><span class="arrow">→</span>
+<span class="st bl">ai_analysis</span><span class="arrow">→</span>
+<span class="st bl">reviewed</span><span class="arrow">→</span>
+<span class="st bl">in_progress</span><span class="arrow">→</span>
+<span class="st">pending_docs</span><span class="arrow">→</span>
+<span class="st">pending_signature</span><span class="arrow">→</span>
+<span class="st gr">resolved</span><span class="arrow">→</span>
+<span class="st gr">closed</span>
+</div>
+
+<h3>Cualquier estado activo puede ir a:</h3>
+<div class="state-flow" style="margin-bottom:32px">
+<span class="st rd">cancelled</span>
+</div>
+
+<div class="state-grid" id="stateGrid">
+<div class="state" data-state="new" onclick="showState('new')">new</div>
+<div class="state active" data-state="ai_analysis" onclick="showState('ai_analysis')">ai_analysis</div>
+<div class="state active" data-state="reviewed" onclick="showState('reviewed')">reviewed</div>
+<div class="state active" data-state="in_progress" onclick="showState('in_progress')">in_progress</div>
+<div class="state" data-state="pending_docs" onclick="showState('pending_docs')">pending_docs</div>
+<div class="state" data-state="pending_signature" onclick="showState('pending_signature')">pending_signature</div>
+<div class="state done" data-state="resolved" onclick="showState('resolved')">resolved</div>
+<div class="state done" data-state="closed" onclick="showState('closed')">closed</div>
+<div class="state cancel" data-state="cancelled" onclick="showState('cancelled')">cancelled</div>
+</div>
+
+<div id="stateDetails">
+<div class="state-detail visible" data-detail="new">
+<h4>new</h4>
+<p>El cliente acaba de enviar su caso. Aún no ha sido procesado por la IA.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Siguiente: ai_analysis (automático, inmediato)</div>
+</div>
+<div class="state-detail" data-detail="ai_analysis">
+<h4>ai_analysis</h4>
+<p>La IA está analizando o ya ha analizado el caso. Se ha generado el informe con resumen, leyes, jurisprudencia y estrategia. Pendiente de revisión por un abogado.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Siguiente: reviewed (cuando el abogado revisa)</div>
+</div>
+<div class="state-detail" data-detail="reviewed">
+<h4>reviewed</h4>
+<p>El abogado ha revisado el análisis IA, ha validado (o corregido) la estrategia y ha aceptado el caso. Se establece el precio cerrado.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Siguiente: in_progress (cuando el cliente acepta)</div>
+</div>
+<div class="state-detail" data-detail="in_progress">
+<h4>in_progress</h4>
+<p>El abogado está trabajando en el caso. Hay comunicación activa entre cliente, abogado e IA. Documentos en movimiento.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Puede ir a: pending_docs (si falta documentación) o pending_signature (cuando se resuelve)</div>
+</div>
+<div class="state-detail" data-detail="pending_docs">
+<h4>pending_docs</h4>
+<p>El abogado necesita documentación adicional del cliente. El caso está bloqueado hasta que el cliente la suba.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Vuelve a: in_progress (cuando el cliente sube los docs)</div>
+</div>
+<div class="state-detail" data-detail="pending_signature">
+<h4>pending_signature</h4>
+<p>El caso está resuelto pero pendiente de firma digital. Los documentos finales están listos.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Siguiente: resolved (cuando el cliente firma)</div>
+</div>
+<div class="state-detail" data-detail="resolved">
+<h4>resolved</h4>
+<p>Caso resuelto. Documentación firmada. El cliente tiene acceso a toda la documentación.</p>
+<div class="transition"><i class="fas fa-arrow-right"></i> Siguiente: closed (archivado)</div>
+</div>
+<div class="state-detail" data-detail="closed">
+<h4>closed</h4>
+<p>Caso archivado. Toda la documentación queda almacenada. No hay más acciones pendientes.</p>
+</div>
+<div class="state-detail" data-detail="cancelled">
+<h4>cancelled</h4>
+<p>El cliente o el abogado han cancelado el caso. Puede ocurrir desde cualquier estado activo.</p>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: AI ANALYSIS STRUCTURE -->
+<!-- ============================================ -->
+<h2 style="margin-top:64px"><i class="fas fa-microchip" style="color:var(--vi)"></i> Análisis IA — estructura</h2>
+<p style="color:var(--gy);font-size:14px;margin-bottom:24px;line-height:1.6">Esto es lo que genera la IA cuando procesa un caso. El abogado ve todo. El cliente ve solo el resumen.</p>
+
+<div class="analysis-card">
+<div class="analysis-header">
+<h4><i class="fas fa-microchip"></i> Análisis de Lexia IA</h4>
+<span class="analysis-badge badge-reviewed"><i class="fas fa-check" style="margin-right:4px;font-size:10px"></i> Revisado por Adrián R.</span>
+</div>
+
+<div class="analysis-tabs">
+<div class="atab active" onclick="showTab('summary')">Resumen</div>
+<div class="atab" onclick="showTab('laws')">Legislación</div>
+<div class="atab" onclick="showTab('juris')">Jurisprudencia</div>
+<div class="atab" onclick="showTab('strategy')">Estrategia</div>
+</div>
+
+<div class="analysis-body">
+
+<!-- Tab: Resumen -->
+<div class="analysis-panel visible" data-panel="summary">
+<div class="ai-field">
+<div class="ai-label">Resumen del caso</div>
+<div class="ai-value">El cliente contrató una hipoteca con cláusula suelo en 2011 con el Banco XYZ. La cláusula establece un tipo mínimo del 3,25% que ha impedido beneficiarse de la bajada del Euríbor. El importe reclamado asciende a aproximadamente €4.800 en intereses cobrados de más durante los últimos 4 años.</div>
+</div>
+<div class="ai-field">
+<div class="ai-label">Tipo de caso</div>
+<div class="ai-value">Reclamación bancaria — Cláusula suelo</div>
+</div>
+<div class="ai-field">
+<div class="ai-label">Valoración inicial</div>
+<div class="ai-value">El caso presenta base legal sólida. La jurisprudencia del Tribunal Supremo y del TJUE es favorable a la eliminación de cláusulas suelo por falta de transparencia.</div>
+</div>
+
+<div class="disclaimer"><i class="fas fa-triangle-exclamation"></i> Este análisis es generado por IA y debe ser revisado por un abogado colegiado antes de tomar cualquier decisión legal.</div>
+</div>
+
+<!-- Tab: Legislación -->
+<div class="analysis-panel" data-panel="laws">
+<div class="ai-field">
+<div class="ai-label">Legislación aplicable</div>
+<div class="ai-value">
+<div class="ai-law">
+<div class="law-ref">Ley 7/1998, de 13 de abril — Condiciones Generales de la Contratación</div>
+<div class="law-desc">Art. 5 y 7: obligación de transparencia e información al consumidor. Las cláusulas que no superen el control de transparencia pueden ser declaradas nulas.</div>
+</div>
+<div class="ai-law">
+<div class="law-ref">Real Decreto Legislativo 1/2007 — Ley General para la Defensa de los Consumidores</div>
+<div class="law-desc">Art. 80-91: protección frente a cláusulas abusivas en contratos con consumidores.</div>
+</div>
+<div class="ai-law">
+<div class="law-ref">Directiva 93/13/CEE del Consejo</div>
+<div class="law-desc">Directiva europea sobre cláusulas abusivas en contratos celebrados con consumidores. Base de la doctrina del TJUE.</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Tab: Jurisprudencia -->
+<div class="analysis-panel" data-panel="juris">
+<div class="ai-field">
+<div class="ai-label">Jurisprudencia relevante</div>
+<div class="ai-value">
+<div class="ai-case">
+<div class="case-ref">STS 241/2013, de 9 de mayo — Tribunal Supremo</div>
+<div class="case-desc">Sentencia que establece el doble control de transparencia para cláusulas suelo. La cláusula debe superar tanto el control de incorporación como el de comprensibilidad real.</div>
+</div>
+<div class="ai-case">
+<div class="case-ref">STJUE C-154/15, C-307/15 y C-308/15, de 21 de diciembre de 2016</div>
+<div class="case-desc">El TJUE dictamina que la limitación temporal de efectos de la nulidad de cláusulas suelo es contraria al Derecho de la UE. Retroactividad total en la devolución.</div>
+</div>
+<div class="ai-case">
+<div class="case-ref">STS 123/2017, de 24 de febrero — Tribunal Supremo</div>
+<div class="case-desc">Confirma la retroactividad total en la devolución de cantidades cobradas indebidamente por cláusulas suelo, en línea con la doctrina del TJUE.</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Tab: Estrategia -->
+<div class="analysis-panel" data-panel="strategy">
+<div class="ai-field">
+<div class="ai-label">Estrategia sugerida por la IA</div>
+<div class="ai-value">
+<ul>
+<li><strong>Fase 1 — Reclamación extrajudicial:</strong> Enviar reclamación formal al Banco XYZ solicitando la eliminación de la cláusula y la devolución íntegra de las cantidades cobradas de más.</li>
+<li><strong>Fase 2 — Plazo de respuesta:</strong> El banco tiene 2 meses para responder (Real Decreto-ley 1/2017). Si no responde o rechaza, se abre la vía judicial.</li>
+<li><strong>Fase 3 — Demanda judicial:</strong> Interponer demanda de juicio ordinario solicitando la nulidad de la cláusula por falta de transparencia y la restitución de las cantidades con intereses legales.</li>
+<li><strong>Costas:</strong> En caso de estimación total, las costas serán a cargo de la entidad bancaria.</li>
+</ul>
+</div>
+</div>
+
+<button class="validate-btn" onclick="this.innerHTML='<i class=\'fas fa-check\'></i> Validado por Adrián R.';this.style.background='var(--gr)';this.style.color='#0B0B0F'">
+<i class="fas fa-check-circle"></i> Validar estrategia
+</button>
+
+<div class="disclaimer"><i class="fas fa-triangle-exclamation"></i> La estrategia es una sugerencia de la IA. El abogado debe revisarla, adaptarla al caso concreto y validarla antes de ejecutar cualquier acción.</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function showState(s){
+document.querySelectorAll('.state-detail').forEach(d=>d.classList.remove('visible'));
+const el=document.querySelector('[data-detail="'+s+'"]');
+if(el)el.classList.add('visible');
+}
+
+function showTab(t){
+document.querySelectorAll('.atab').forEach(a=>a.classList.remove('active'));
+document.querySelectorAll('.analysis-panel').forEach(p=>p.classList.remove('visible'));
+event.target.classList.add('active');
+const p=document.querySelector('[data-panel="'+t+'"]');
+if(p)p.classList.add('visible');
+}
+</script>
+</body>
+</html>
