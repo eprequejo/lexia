@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexia — Demo App</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bk:#0B0B0F;--bl:#3B82F6;--gr:#00FFB2;--vi:#7C3AED;--wh:#FFFFFF;--gy:#8A8F98;--dc:#111118;--db:#1E1E2A;--sidebar:240px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--dc);border-right:1px solid var(--db);padding:20px 14px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:8px 10px 20px;margin-bottom:4px;border-bottom:1px solid var(--db);text-decoration:none;color:var(--wh)}
+.sidebar-brand svg{width:36px;height:36px;flex-shrink:0}
+.sidebar-brand span{font-weight:700;font-size:18px}
+.sidebar-brand .leg{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--gr);text-transform:uppercase;margin-left:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--gy);cursor:pointer;transition:all .15s;margin-top:2px}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--wh)}
+.nav-item.active{background:rgba(59,130,246,.1);color:var(--bl)}
+.nav-item i{width:18px;text-align:center;font-size:14px}
+.nav-divider{height:1px;background:var(--db);margin:12px 0}
+.toggle-bar{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;margin:0 10px 8px}
+.toggle-btn{flex:1;text-align:center;padding:8px 0;border-radius:8px;font-size:12px;font-weight:600;color:var(--gy);cursor:pointer;transition:all .2s}
+.toggle-btn.active{background:var(--bl);color:#fff}
+.back-landing{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:500;color:var(--gy);cursor:pointer;transition:all .15s;text-decoration:none;margin-top:auto;border:1px solid var(--db)}
+.back-landing:hover{background:rgba(255,255,255,.04);color:var(--wh);border-color:rgba(255,255,255,.1)}
+.back-landing i{font-size:12px}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--db);flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gy)}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.av-client{background:linear-gradient(135deg,var(--gr),var(--bl))}
+.av-lawyer{background:linear-gradient(135deg,var(--bl),var(--vi))}
+.content{flex:1;overflow-y:auto;padding:28px}
+.screen{display:none}.screen.visible{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:18px 20px}
+.stat-label{font-size:11px;color:var(--gy);margin-bottom:6px;font-weight:500}
+.stat-value{font-size:24px;font-weight:700}
+.stat-sub{font-size:11px;color:var(--gr);margin-top:4px}
+
+/* CASE LIST */
+.case-list{display:flex;flex-direction:column;gap:10px}
+.case-row{display:flex;align-items:center;gap:16px;padding:16px 18px;background:var(--dc);border:1px solid var(--db);border-radius:12px;cursor:pointer;transition:all .15s}
+.case-row:hover{border-color:rgba(255,255,255,.1);transform:translateY(-1px)}
+.case-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-green{background:var(--gr);box-shadow:0 0 8px rgba(0,255,178,.3)}
+.dot-blue{background:var(--bl);box-shadow:0 0 8px rgba(59,130,246,.3)}
+.dot-violet{background:var(--vi);box-shadow:0 0 8px rgba(124,58,237,.3)}
+.dot-amber{background:#d29922;box-shadow:0 0 8px rgba(210,153,34,.3)}
+.case-info{flex:1}.case-title{font-size:14px;font-weight:600;margin-bottom:2px}.case-sub{font-size:12px;color:var(--gy)}
+.case-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px}
+.badge-done{background:rgba(0,255,178,.08);color:var(--gr)}
+.badge-progress{background:rgba(59,130,246,.08);color:var(--bl)}
+.badge-pending{background:rgba(124,58,237,.08);color:var(--vi)}
+.badge-review{background:rgba(210,153,34,.08);color:#d29922}
+
+/* FILTERS */
+.filters{display:flex;gap:6px;margin-bottom:20px}
+.filter-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--gy);background:rgba(255,255,255,.03);border:1px solid var(--db);cursor:pointer;transition:all .15s;font-family:inherit}
+.filter-btn:hover{border-color:rgba(255,255,255,.1);color:var(--wh)}
+.filter-btn.active{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.2);color:var(--bl)}
+.case-count{font-size:12px;color:var(--gy);margin-bottom:14px}
+
+/* DETAIL */
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--gy);cursor:pointer;transition:color .15s;background:none;border:none;font-family:inherit}
+.back-btn:hover{color:var(--wh)}
+.detail-title{font-size:20px;font-weight:700}
+.detail-tabs{display:flex;gap:0;border-bottom:1px solid var(--db);margin-bottom:24px}
+.dtab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--gy);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.dtab:hover{color:var(--wh)}
+.dtab.active{color:var(--bl);border-bottom-color:var(--bl)}
+.tab-panel{display:none}.tab-panel.visible{display:block}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--db);border-radius:1px}
+.tl-item{position:relative;margin-bottom:20px}.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-28px;top:3px;width:16px;height:16px;border-radius:50%;border:2px solid var(--db);background:var(--bk)}
+.tl-dot.ai{border-color:var(--vi);background:rgba(124,58,237,.15)}
+.tl-dot.lawyer{border-color:var(--bl);background:rgba(59,130,246,.15)}
+.tl-dot.client{border-color:var(--gr);background:rgba(0,255,178,.15)}
+.tl-dot.system{border-color:var(--gy);background:rgba(255,255,255,.05)}
+.tl-time{font-size:11px;color:var(--gy);margin-bottom:2px}
+.tl-text{font-size:13px;line-height:1.5}
+.tl-actor{font-size:11px;font-weight:600;margin-bottom:2px}
+.tl-actor.ai{color:var(--vi)}.tl-actor.lawyer{color:var(--bl)}.tl-actor.client{color:var(--gr)}
+
+/* DOCS */
+.doc-list{display:flex;flex-direction:column;gap:8px}
+.doc-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--dc);border:1px solid var(--db);border-radius:10px}
+.doc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.doc-icon.pdf{background:rgba(248,81,73,.08);color:#f85149}
+.doc-icon.doc{background:rgba(124,58,237,.08);color:var(--vi)}
+.doc-info{flex:1}.doc-name{font-size:13px;font-weight:500}.doc-meta{font-size:11px;color:var(--gy)}
+
+/* AI CARD */
+.ai-card{background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.12);border-radius:12px;padding:20px;margin-bottom:16px}
+.ai-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ai-card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ai-card-title i{color:var(--vi)}
+.ai-section{margin-bottom:16px}.ai-section:last-child{margin-bottom:0}
+.ai-section-label{font-size:11px;font-weight:600;color:var(--vi);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.ai-section-text{font-size:13px;color:rgba(255,255,255,.8);line-height:1.6}
+.ai-law-item{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.1);border-radius:8px;padding:10px 14px;margin-bottom:6px}
+.ai-law-ref{font-size:12px;font-weight:600;color:var(--bl)}.ai-law-desc{font-size:11px;color:var(--gy);margin-top:2px}
+.ai-case-item{background:rgba(0,255,178,.03);border:1px solid rgba(0,255,178,.08);border-radius:8px;padding:10px 14px;margin-bottom:6px}
+.ai-case-ref{font-size:12px;font-weight:600;color:var(--gr)}.ai-case-desc{font-size:11px;color:var(--gy);margin-top:2px}
+.ai-strategy-step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.5}
+.ai-strategy-num{width:22px;height:22px;border-radius:6px;background:rgba(124,58,237,.1);color:var(--vi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.validate-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--bl),var(--vi));color:#fff;border:none;cursor:pointer;transition:all .2s;margin-top:8px;font-family:inherit}
+.validate-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.ai-disclaimer{font-size:11px;color:var(--gy);padding:10px 12px;background:rgba(255,255,255,.02);border-radius:8px;margin-top:12px;line-height:1.5}
+
+/* CHAT */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 220px);max-height:500px}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:16px}
+.msg{max-width:80%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6}
+.msg-ai{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.1);align-self:flex-start;border-bottom-left-radius:4px}
+.msg-lawyer{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.1);align-self:flex-start;border-bottom-left-radius:4px}
+.msg-client{background:rgba(0,255,178,.06);border:1px solid rgba(0,255,178,.08);align-self:flex-end;border-bottom-right-radius:4px}
+.msg-sender{font-size:11px;font-weight:600;margin-bottom:4px}
+.msg-sender.ai{color:var(--vi)}.msg-sender.lawyer{color:var(--bl)}.msg-sender.client{color:var(--gr)}
+.msg-time{font-size:10px;color:var(--gy);margin-top:4px}
+.chat-input{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--db)}
+.chat-input input{flex:1;padding:12px 16px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--db);color:#fff;font-size:13px;font-family:inherit;outline:none}
+.chat-input input:focus{border-color:var(--bl)}
+.chat-input button{padding:12px 20px;border-radius:10px;background:var(--bl);color:#fff;border:none;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600}
+
+/* LAWYER METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.metric{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:18px 20px;text-align:center}
+.metric-value{font-size:28px;font-weight:700}.metric-label{font-size:11px;color:var(--gy);margin-top:4px}
+.section-label{font-size:12px;font-weight:600;color:var(--gy);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.stats,.metrics-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<a href="index.html" class="sidebar-brand">
+<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="10" fill="url(#lg)"/><path d="M12 28V12h4v12h8v4H12z" fill="white"/><path d="M26 12v6" stroke="#00FFB2" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="22" r="2" fill="#00FFB2"/><defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs></svg>
+<span>Lexia <span class="leg">LEGAL</span></span>
+</a>
+<div class="toggle-bar">
+<div class="toggle-btn active" onclick="switchView('client')">Cliente</div>
+<div class="toggle-btn" onclick="switchView('lawyer')">Abogado</div>
+</div>
+<div class="nav-item active" data-nav="dashboard" onclick="goTo('dashboard')"><i class="fas fa-grip"></i> Dashboard</div>
+<div class="nav-item" data-nav="cases" onclick="goTo('cases')"><i class="fas fa-briefcase"></i> Mis Casos</div>
+<div class="nav-item" data-nav="chat" onclick="goTo('chat')"><i class="fas fa-microchip"></i> Chat IA</div>
+<div class="nav-divider"></div>
+<div class="nav-item" data-nav="predictions" onclick="goTo('predictions')"><i class="fas fa-scale-balanced"></i> Predicciones</div>
+<div class="nav-item" data-nav="signature" onclick="goTo('signature')"><i class="fas fa-pen-nib"></i> Firma Digital</div>
+<div class="nav-divider"></div>
+<div class="nav-item" data-nav="settings" onclick="goTo('settings')"><i class="fas fa-sliders"></i> Ajustes</div>
+<a href="index.html" class="back-landing"><i class="fas fa-arrow-left"></i> Volver a la landing</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+<div class="topbar-title" id="topbarTitle">Dashboard</div>
+<div class="topbar-user"><span id="userName">Carlos García</span><div class="avatar av-client" id="userAvatar">CG</div></div>
+</div>
+<div class="content">
+
+<!-- ===== CLIENT DASHBOARD ===== -->
+<div class="screen visible" id="client-dashboard">
+<div class="stats">
+<div class="stat"><div class="stat-label">Casos activos</div><div class="stat-value">3</div><div class="stat-sub">1 pendiente de documentación</div></div>
+<div class="stat"><div class="stat-label">Último mensaje</div><div class="stat-value" style="font-size:18px">Hace 2h</div><div class="stat-sub">Adrián R. actualizó tu caso</div></div>
+<div class="stat"><div class="stat-label">Próximo paso</div><div class="stat-value" style="font-size:18px">Firmar</div><div class="stat-sub">Contrato de arrendamiento</div></div>
+</div>
+<div class="section-label">Tus casos</div>
+<div class="case-list">
+<div class="case-row" onclick="openCase('bancario')"><div class="case-dot dot-green"></div><div class="case-info"><div class="case-title">Reclamación bancaria #1247</div><div class="case-sub">Cláusula suelo — Banco XYZ</div></div><span class="case-badge badge-done">Completado</span></div>
+<div class="case-row" onclick="openCase('arrendamiento')"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Contrato de arrendamiento</div><div class="case-sub">Revisión contrato alquiler piso</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row" onclick="openCase('laboral')"><div class="case-dot dot-violet"></div><div class="case-info"><div class="case-title">Consulta laboral</div><div class="case-sub">Despido improcedente</div></div><span class="case-badge badge-pending">Pendiente</span></div>
+</div>
+</div>
+
+<!-- ===== CLIENT: MIS CASOS (filtered) ===== -->
+<div class="screen" id="client-cases">
+<div class="filters">
+<button class="filter-btn active" onclick="filterCases('all',this)">Todos</button>
+<button class="filter-btn" onclick="filterCases('active',this)">Activos</button>
+<button class="filter-btn" onclick="filterCases('pending',this)">Pendientes</button>
+<button class="filter-btn" onclick="filterCases('closed',this)">Cerrados</button>
+</div>
+<div class="case-count" id="caseCount">3 casos</div>
+<div class="case-list" id="clientCaseList">
+<div class="case-row" data-status="closed" onclick="openCase('bancario')"><div class="case-dot dot-green"></div><div class="case-info"><div class="case-title">Reclamación bancaria #1247</div><div class="case-sub">Cláusula suelo — Banco XYZ · 15 mar 2026</div></div><span class="case-badge badge-done">Completado</span></div>
+<div class="case-row" data-status="active" onclick="openCase('arrendamiento')"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Contrato de arrendamiento</div><div class="case-sub">Revisión contrato alquiler · 20 mar 2026</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row" data-status="pending" onclick="openCase('laboral')"><div class="case-dot dot-violet"></div><div class="case-info"><div class="case-title">Consulta laboral</div><div class="case-sub">Despido improcedente · 1 abr 2026</div></div><span class="case-badge badge-pending">Pendiente docs</span></div>
+</div>
+</div>
+
+<!-- ===== CLIENT: CASE DETAIL — BANCARIO ===== -->
+<div class="screen" id="detail-bancario">
+<div class="detail-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Volver</button><span class="case-badge badge-done">Completado</span></div>
+<div class="detail-title">Reclamación bancaria #1247</div>
+<p style="color:var(--gy);font-size:13px;margin:4px 0 20px">Cláusula suelo — Banco XYZ</p>
+<div class="detail-tabs" id="tabs-bancario">
+<div class="dtab active" onclick="showTab('bancario','timeline')">Timeline</div>
+<div class="dtab" onclick="showTab('bancario','docs')">Documentos</div>
+<div class="dtab" onclick="showTab('bancario','analysis')">Análisis IA</div>
+<div class="dtab" onclick="showTab('bancario','chat')">Chat</div>
+</div>
+<div class="tab-panel visible" data-case="bancario" data-tab="timeline">
+<div class="timeline">
+<div class="tl-item"><div class="tl-dot system"></div><div class="tl-time">15 mar · 09:12</div><div class="tl-actor">Sistema</div><div class="tl-text">Caso creado por Carlos García</div></div>
+<div class="tl-item"><div class="tl-dot ai"></div><div class="tl-time">15 mar · 09:13</div><div class="tl-actor ai">Lexia IA</div><div class="tl-text">Análisis completado. Base legal sólida. Jurisprudencia favorable.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">15 mar · 11:45</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Análisis validado. Precio cerrado: €350</div></div>
+<div class="tl-item"><div class="tl-dot client"></div><div class="tl-time">15 mar · 14:20</div><div class="tl-actor client">Carlos García</div><div class="tl-text">Precio aceptado. Caso en marcha.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">18 mar · 10:30</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Reclamación extrajudicial enviada al Banco XYZ.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">28 mar · 16:15</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Banco acepta devolución €4.800. Caso resuelto.</div></div>
+<div class="tl-item"><div class="tl-dot system"></div><div class="tl-time">28 mar · 16:20</div><div class="tl-actor">Sistema</div><div class="tl-text">Pendiente de firma digital</div></div>
+</div>
+</div>
+<div class="tab-panel" data-case="bancario" data-tab="docs">
+<div class="doc-list">
+<div class="doc-row"><div class="doc-icon pdf"><i class="fas fa-file-pdf"></i></div><div class="doc-info"><div class="doc-name">Contrato hipoteca original.pdf</div><div class="doc-meta">Carlos · 15 mar · 2.4 MB</div></div></div>
+<div class="doc-row"><div class="doc-icon pdf"><i class="fas fa-file-pdf"></i></div><div class="doc-info"><div class="doc-name">Reclamación extrajudicial.pdf</div><div class="doc-meta">Adrián R. · 18 mar · 340 KB</div></div></div>
+<div class="doc-row"><div class="doc-icon pdf"><i class="fas fa-file-pdf"></i></div><div class="doc-info"><div class="doc-name">Respuesta Banco XYZ.pdf</div><div class="doc-meta">Adrián R. · 28 mar · 520 KB</div></div></div>
+<div class="doc-row"><div class="doc-icon doc"><i class="fas fa-file-lines"></i></div><div class="doc-info"><div class="doc-name">Acuerdo de devolución — firma pendiente</div><div class="doc-meta">Sistema · 28 mar · 180 KB</div></div></div>
+</div>
+</div>
+<div class="tab-panel" data-case="bancario" data-tab="analysis">
+<div class="ai-card">
+<div class="ai-card-header"><div class="ai-card-title"><i class="fas fa-microchip"></i> Análisis de Lexia IA</div><span class="case-badge badge-done" style="font-size:10px"><i class="fas fa-check" style="margin-right:3px"></i> Revisado</span></div>
+<div class="ai-section"><div class="ai-section-label">Resumen</div><div class="ai-section-text">Hipoteca con cláusula suelo (3,25%) contratada en 2011. Importe reclamable: ~€4.800 en intereses cobrados de más. Base legal sólida según jurisprudencia del TS y TJUE.</div></div>
+<div class="ai-section"><div class="ai-section-label">Legislación</div>
+<div class="ai-law-item"><div class="ai-law-ref">Ley 7/1998 — Condiciones Generales de la Contratación</div><div class="ai-law-desc">Art. 5 y 7: obligación de transparencia.</div></div>
+<div class="ai-law-item"><div class="ai-law-ref">RDL 1/2007 — Defensa de los Consumidores</div><div class="ai-law-desc">Art. 80-91: protección frente a cláusulas abusivas.</div></div>
+</div>
+<div class="ai-section"><div class="ai-section-label">Jurisprudencia</div>
+<div class="ai-case-item"><div class="ai-case-ref">STS 241/2013 — Tribunal Supremo</div><div class="ai-case-desc">Doble control de transparencia para cláusulas suelo.</div></div>
+<div class="ai-case-item"><div class="ai-case-ref">STJUE C-154/15, dic 2016</div><div class="ai-case-desc">Retroactividad total en devolución.</div></div>
+</div>
+<div class="ai-section"><div class="ai-section-label">Estrategia</div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">1</div><div>Reclamación extrajudicial al banco.</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">2</div><div>Plazo 2 meses. Si rechaza → vía judicial.</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">3</div><div>Demanda: nulidad + restitución + intereses.</div></div>
+</div>
+<button class="validate-btn" onclick="this.innerHTML='<i class=\'fas fa-check\'></i> Validado';this.style.background='var(--gr)';this.style.color='#0B0B0F'"><i class="fas fa-check-circle"></i> Validar</button>
+</div>
+</div>
+<div class="tab-panel" data-case="bancario" data-tab="chat">
+<div class="chat-container"><div class="chat-messages">
+<div class="msg msg-ai"><div class="msg-sender ai"><i class="fas fa-microchip" style="margin-right:4px;font-size:10px"></i> Lexia IA</div>Hola Carlos, he analizado tu caso de cláusula suelo. Tu reclamación tiene base legal sólida. Un abogado revisará el análisis en breve.<div class="msg-time">15 mar · 09:13</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Buenos días Carlos. He revisado tu caso. Tienes una reclamación sólida. Te propongo llevarlo por €350, precio cerrado. ¿Te parece?<div class="msg-time">15 mar · 11:50</div></div>
+<div class="msg msg-client"><div class="msg-sender client">Carlos</div>Perfecto, acepto. ¿Cuánto puede tardar?<div class="msg-time">15 mar · 14:18</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Entre 2 y 8 semanas. Primero reclamación extrajudicial. Te mantengo informado.<div class="msg-time">15 mar · 14:25</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Buenas noticias. El banco acepta devolver €4.800. Solo falta tu firma digital.<div class="msg-time">28 mar · 16:18</div></div>
+<div class="msg msg-client"><div class="msg-sender client">Carlos</div>¡Genial! Ahora lo firmo. Muchas gracias Adrián.<div class="msg-time">28 mar · 16:30</div></div>
+</div><div class="chat-input"><input type="text" placeholder="Escribe un mensaje..."><button><i class="fas fa-paper-plane"></i></button></div></div>
+</div>
+</div>
+
+<!-- ===== CASE DETAIL — ARRENDAMIENTO ===== -->
+<div class="screen" id="detail-arrendamiento">
+<div class="detail-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Volver</button><span class="case-badge badge-progress">En curso</span></div>
+<div class="detail-title">Contrato de arrendamiento</div>
+<p style="color:var(--gy);font-size:13px;margin:4px 0 20px">Revisión contrato alquiler piso — Madrid centro</p>
+<div class="detail-tabs" id="tabs-arrendamiento">
+<div class="dtab active" onclick="showTab('arrendamiento','timeline')">Timeline</div>
+<div class="dtab" onclick="showTab('arrendamiento','docs')">Documentos</div>
+<div class="dtab" onclick="showTab('arrendamiento','analysis')">Análisis IA</div>
+<div class="dtab" onclick="showTab('arrendamiento','chat')">Chat</div>
+</div>
+<div class="tab-panel visible" data-case="arrendamiento" data-tab="timeline">
+<div class="timeline">
+<div class="tl-item"><div class="tl-dot system"></div><div class="tl-time">20 mar · 18:40</div><div class="tl-actor">Sistema</div><div class="tl-text">Caso creado por Carlos García</div></div>
+<div class="tl-item"><div class="tl-dot ai"></div><div class="tl-time">20 mar · 18:41</div><div class="tl-actor ai">Lexia IA</div><div class="tl-text">Análisis completado. Se detectan 3 cláusulas potencialmente abusivas en el contrato.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">21 mar · 09:15</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Análisis validado. Confirmo las 3 cláusulas abusivas. Precio: €200</div></div>
+<div class="tl-item"><div class="tl-dot client"></div><div class="tl-time">21 mar · 10:00</div><div class="tl-actor client">Carlos García</div><div class="tl-text">Precio aceptado.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">25 mar · 14:30</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Contrato revisado con propuestas de modificación enviadas al propietario.</div></div>
+</div>
+</div>
+<div class="tab-panel" data-case="arrendamiento" data-tab="docs">
+<div class="doc-list">
+<div class="doc-row"><div class="doc-icon pdf"><i class="fas fa-file-pdf"></i></div><div class="doc-info"><div class="doc-name">Contrato alquiler original.pdf</div><div class="doc-meta">Carlos · 20 mar · 1.8 MB</div></div></div>
+<div class="doc-row"><div class="doc-icon doc"><i class="fas fa-file-lines"></i></div><div class="doc-info"><div class="doc-name">Informe cláusulas abusivas.pdf</div><div class="doc-meta">Adrián R. · 21 mar · 290 KB</div></div></div>
+<div class="doc-row"><div class="doc-icon doc"><i class="fas fa-file-lines"></i></div><div class="doc-info"><div class="doc-name">Contrato modificado — propuesta.pdf</div><div class="doc-meta">Adrián R. · 25 mar · 420 KB</div></div></div>
+</div>
+</div>
+<div class="tab-panel" data-case="arrendamiento" data-tab="analysis">
+<div class="ai-card">
+<div class="ai-card-header"><div class="ai-card-title"><i class="fas fa-microchip"></i> Análisis de Lexia IA</div><span class="case-badge badge-done" style="font-size:10px"><i class="fas fa-check" style="margin-right:3px"></i> Revisado</span></div>
+<div class="ai-section"><div class="ai-section-label">Resumen</div><div class="ai-section-text">Contrato de alquiler de vivienda en Madrid. Se detectan 3 cláusulas potencialmente abusivas: penalización excesiva por rescisión anticipada (6 meses), renuncia a derecho de tanteo, y repercusión de gastos de comunidad sin desglose.</div></div>
+<div class="ai-section"><div class="ai-section-label">Legislación</div>
+<div class="ai-law-item"><div class="ai-law-ref">Ley 29/1994 — Ley de Arrendamientos Urbanos (LAU)</div><div class="ai-law-desc">Art. 11: desistimiento del contrato. Art. 25: derecho de adquisición preferente.</div></div>
+<div class="ai-law-item"><div class="ai-law-ref">Ley 12/2023 — Ley por el Derecho a la Vivienda</div><div class="ai-law-desc">Limitaciones a la repercusión de gastos al arrendatario.</div></div>
+</div>
+<div class="ai-section"><div class="ai-section-label">Estrategia</div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">1</div><div>Negociar eliminación de la penalización de 6 meses (ilegal si supera 1 mes/año restante).</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">2</div><div>Eliminar renuncia al tanteo (derecho irrenunciable según LAU).</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">3</div><div>Exigir desglose de gastos de comunidad.</div></div>
+</div>
+<button class="validate-btn" onclick="this.innerHTML='<i class=\'fas fa-check\'></i> Validado';this.style.background='var(--gr)';this.style.color='#0B0B0F'"><i class="fas fa-check-circle"></i> Validar</button>
+</div>
+</div>
+<div class="tab-panel" data-case="arrendamiento" data-tab="chat">
+<div class="chat-container"><div class="chat-messages">
+<div class="msg msg-ai"><div class="msg-sender ai"><i class="fas fa-microchip" style="margin-right:4px;font-size:10px"></i> Lexia IA</div>He revisado tu contrato de alquiler. He detectado 3 cláusulas que podrían ser abusivas. Un abogado las revisará en detalle.<div class="msg-time">20 mar · 18:41</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Carlos, confirmo lo que detectó la IA. La penalización de 6 meses es ilegal y la renuncia al tanteo también. Te propongo revisar y negociar con el propietario por €200.<div class="msg-time">21 mar · 09:20</div></div>
+<div class="msg msg-client"><div class="msg-sender client">Carlos</div>Genial, adelante. ¿Crees que el propietario aceptará los cambios?<div class="msg-time">21 mar · 10:05</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>En mi experiencia, sí. Le estamos pidiendo que cumpla la ley, no nada extraordinario. He enviado la propuesta de modificación hoy.<div class="msg-time">25 mar · 14:35</div></div>
+</div><div class="chat-input"><input type="text" placeholder="Escribe un mensaje..."><button><i class="fas fa-paper-plane"></i></button></div></div>
+</div>
+</div>
+
+<!-- ===== CASE DETAIL — LABORAL ===== -->
+<div class="screen" id="detail-laboral">
+<div class="detail-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Volver</button><span class="case-badge badge-pending">Pendiente docs</span></div>
+<div class="detail-title">Consulta laboral</div>
+<p style="color:var(--gy);font-size:13px;margin:4px 0 20px">Despido improcedente — Empresa TechCorp SL</p>
+<div class="detail-tabs" id="tabs-laboral">
+<div class="dtab active" onclick="showTab('laboral','timeline')">Timeline</div>
+<div class="dtab" onclick="showTab('laboral','docs')">Documentos</div>
+<div class="dtab" onclick="showTab('laboral','analysis')">Análisis IA</div>
+<div class="dtab" onclick="showTab('laboral','chat')">Chat</div>
+</div>
+<div class="tab-panel visible" data-case="laboral" data-tab="timeline">
+<div class="timeline">
+<div class="tl-item"><div class="tl-dot system"></div><div class="tl-time">1 abr · 20:15</div><div class="tl-actor">Sistema</div><div class="tl-text">Caso creado por Carlos García</div></div>
+<div class="tl-item"><div class="tl-dot ai"></div><div class="tl-time">1 abr · 20:16</div><div class="tl-actor ai">Lexia IA</div><div class="tl-text">Análisis completado. Posible despido improcedente. Se necesita carta de despido y últimas 6 nóminas.</div></div>
+<div class="tl-item"><div class="tl-dot lawyer"></div><div class="tl-time">2 abr · 08:30</div><div class="tl-actor lawyer">Adrián R.</div><div class="tl-text">Análisis validado. Necesito la carta de despido y nóminas para calcular indemnización. Precio: €500</div></div>
+<div class="tl-item"><div class="tl-dot system"></div><div class="tl-time">2 abr · 08:31</div><div class="tl-actor">Sistema</div><div class="tl-text">Estado: Pendiente de documentación</div></div>
+</div>
+</div>
+<div class="tab-panel" data-case="laboral" data-tab="docs">
+<div class="doc-list">
+<div class="doc-row"><div class="doc-icon doc"><i class="fas fa-file-lines"></i></div><div class="doc-info"><div class="doc-name">Descripción del caso — texto libre</div><div class="doc-meta">Carlos · 1 abr · texto</div></div></div>
+</div>
+<div style="margin-top:16px;padding:16px;border:1px dashed var(--db);border-radius:10px;text-align:center;color:var(--gy);font-size:13px"><i class="fas fa-cloud-arrow-up" style="font-size:20px;display:block;margin-bottom:8px;color:var(--vi)"></i>Pendiente: carta de despido y últimas 6 nóminas</div>
+</div>
+<div class="tab-panel" data-case="laboral" data-tab="analysis">
+<div class="ai-card">
+<div class="ai-card-header"><div class="ai-card-title"><i class="fas fa-microchip"></i> Análisis de Lexia IA</div><span class="case-badge badge-review" style="font-size:10px"><i class="fas fa-clock" style="margin-right:3px"></i> Pendiente docs</span></div>
+<div class="ai-section"><div class="ai-section-label">Resumen preliminar</div><div class="ai-section-text">Despido comunicado verbalmente el 28 de marzo tras 4 años en la empresa. Sin carta de despido formal. Indicios de improcedencia: no se ha seguido el procedimiento legal. Se necesita documentación para confirmar y calcular indemnización (33 días/año trabajado).</div></div>
+<div class="ai-section"><div class="ai-section-label">Legislación</div>
+<div class="ai-law-item"><div class="ai-law-ref">Estatuto de los Trabajadores — Art. 53-56</div><div class="ai-law-desc">Requisitos formales del despido. La falta de carta escrita puede convertir el despido en improcedente.</div></div>
+<div class="ai-law-item"><div class="ai-law-ref">Ley 36/2011 — Ley reguladora de la jurisdicción social</div><div class="ai-law-desc">Plazo de 20 días hábiles para presentar demanda de conciliación.</div></div>
+</div>
+<div class="ai-section"><div class="ai-section-label">Estrategia (pendiente de docs)</div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">1</div><div>Obtener carta de despido y nóminas para calcular indemnización exacta.</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">2</div><div>Presentar papeleta de conciliación en SMAC antes de que caduque el plazo (20 días hábiles).</div></div>
+<div class="ai-strategy-step"><div class="ai-strategy-num">3</div><div>Si no hay acuerdo → demanda ante Juzgado de lo Social.</div></div>
+</div>
+<div class="ai-disclaimer"><i class="fas fa-triangle-exclamation" style="color:#d29922;margin-right:4px"></i> Análisis preliminar. Pendiente de documentación para completar la valoración.</div>
+</div>
+</div>
+<div class="tab-panel" data-case="laboral" data-tab="chat">
+<div class="chat-container"><div class="chat-messages">
+<div class="msg msg-ai"><div class="msg-sender ai"><i class="fas fa-microchip" style="margin-right:4px;font-size:10px"></i> Lexia IA</div>He analizado tu caso de despido. Parece improcedente por falta de carta formal. Necesitamos la carta de despido y tus últimas 6 nóminas para avanzar.<div class="msg-time">1 abr · 20:16</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Buenos días Carlos. He visto tu caso. Es urgente: tienes 20 días hábiles para actuar. ¿Puedes subir la carta de despido y las nóminas lo antes posible?<div class="msg-time">2 abr · 08:35</div></div>
+<div class="msg msg-client"><div class="msg-sender client">Carlos</div>No me han dado carta de despido, me lo dijeron de palabra. Las nóminas las tengo en casa, las subo esta noche.<div class="msg-time">2 abr · 12:40</div></div>
+<div class="msg msg-lawyer"><div class="msg-sender lawyer"><i class="fas fa-user-tie" style="margin-right:4px;font-size:10px"></i> Adrián R.</div>Perfecto, eso refuerza la improcedencia. Sin carta = despido nulo o improcedente. Sube las nóminas y calculamos tu indemnización exacta.<div class="msg-time">2 abr · 13:00</div></div>
+</div><div class="chat-input"><input type="text" placeholder="Escribe un mensaje..."><button><i class="fas fa-paper-plane"></i></button></div></div>
+</div>
+</div>
+
+<!-- ===== LAWYER DASHBOARD ===== -->
+<div class="screen" id="lawyer-dashboard">
+<div class="metrics-grid">
+<div class="metric"><div class="metric-value" style="color:var(--bl)">12</div><div class="metric-label">Casos activos</div></div>
+<div class="metric"><div class="metric-value" style="color:var(--vi)">3</div><div class="metric-label">Pendientes revisión IA</div></div>
+<div class="metric"><div class="metric-value" style="color:var(--gr)">28</div><div class="metric-label">Resueltos este mes</div></div>
+<div class="metric"><div class="metric-value">€8.400</div><div class="metric-label">Facturación mes</div></div>
+</div>
+<div class="section-label">Casos recientes</div>
+<div class="case-list">
+<div class="case-row" onclick="openCase('bancario')"><div class="case-dot dot-green"></div><div class="case-info"><div class="case-title">Reclamación bancaria #1247</div><div class="case-sub">Carlos García — Cláusula suelo</div></div><span class="case-badge badge-done">Completado</span></div>
+<div class="case-row" onclick="openCase('arrendamiento')"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Contrato de arrendamiento</div><div class="case-sub">Carlos García — Revisión contrato</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row" onclick="openCase('laboral')"><div class="case-dot dot-violet"></div><div class="case-info"><div class="case-title">Consulta laboral</div><div class="case-sub">Carlos García — Despido</div></div><span class="case-badge badge-pending">Pendiente docs</span></div>
+<div class="case-row"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Reclamación seguros #892</div><div class="case-sub">Laura Fernández — Accidente tráfico</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row"><div class="case-dot dot-amber"></div><div class="case-info"><div class="case-title">Herencia #445</div><div class="case-sub">Pedro Martín — Testamento</div></div><span class="case-badge badge-review">Revisión IA</span></div>
+</div>
+</div>
+
+<!-- ===== LAWYER: MIS CASOS ===== -->
+<div class="screen" id="lawyer-cases">
+<div class="filters">
+<button class="filter-btn active" onclick="filterLawyerCases('all',this)">Todos</button>
+<button class="filter-btn" onclick="filterLawyerCases('active',this)">Activos</button>
+<button class="filter-btn" onclick="filterLawyerCases('review',this)">Revisión IA</button>
+<button class="filter-btn" onclick="filterLawyerCases('closed',this)">Cerrados</button>
+</div>
+<div class="case-count" id="lawyerCaseCount">5 casos</div>
+<div class="case-list" id="lawyerCaseList">
+<div class="case-row" data-lstatus="closed" onclick="openCase('bancario')"><div class="case-dot dot-green"></div><div class="case-info"><div class="case-title">Reclamación bancaria #1247</div><div class="case-sub">Carlos García — Cláusula suelo · 15 mar</div></div><span class="case-badge badge-done">Completado</span></div>
+<div class="case-row" data-lstatus="active" onclick="openCase('arrendamiento')"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Contrato de arrendamiento</div><div class="case-sub">Carlos García — Revisión · 20 mar</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row" data-lstatus="active" onclick="openCase('laboral')"><div class="case-dot dot-violet"></div><div class="case-info"><div class="case-title">Consulta laboral</div><div class="case-sub">Carlos García — Despido · 1 abr</div></div><span class="case-badge badge-pending">Pendiente docs</span></div>
+<div class="case-row" data-lstatus="active"><div class="case-dot dot-blue"></div><div class="case-info"><div class="case-title">Reclamación seguros #892</div><div class="case-sub">Laura Fernández — Accidente · 10 mar</div></div><span class="case-badge badge-progress">En curso</span></div>
+<div class="case-row" data-lstatus="review"><div class="case-dot dot-amber"></div><div class="case-info"><div class="case-title">Herencia #445</div><div class="case-sub">Pedro Martín — Testamento · 5 abr</div></div><span class="case-badge badge-review">Revisión IA</span></div>
+</div>
+</div>
+
+<!-- ===== PLACEHOLDER SCREENS ===== -->
+<div class="screen" id="screen-chat">
+<div class="ai-card" style="margin-bottom:16px">
+<div class="ai-card-title" style="margin-bottom:12px"><i class="fas fa-microchip"></i> Chat con Lexia IA</div>
+<div class="chat-container" style="max-height:400px"><div class="chat-messages">
+<div class="msg msg-ai"><div class="msg-sender ai"><i class="fas fa-microchip" style="margin-right:4px;font-size:10px"></i> Lexia IA</div>Hola, soy Lexia. ¿En qué puedo ayudarte? Puedo responder preguntas sobre tus casos o sobre temas legales generales.<div class="msg-time">Ahora</div></div>
+</div><div class="chat-input"><input type="text" placeholder="Pregúntale a Lexia..."><button><i class="fas fa-paper-plane"></i></button></div></div>
+</div>
+</div>
+<div class="screen" id="screen-predictions"><div class="ai-card"><div class="ai-card-title"><i class="fas fa-scale-balanced"></i> Predicciones</div><p style="color:var(--gy);font-size:13px;margin-top:12px">Módulo en desarrollo. Predicciones de resultado basadas en jurisprudencia histórica.</p></div></div>
+<div class="screen" id="screen-signature"><div class="ai-card"><div class="ai-card-title"><i class="fas fa-pen-nib"></i> Firma Digital</div><p style="color:var(--gy);font-size:13px;margin-top:12px">Módulo en desarrollo. Firma de documentos legales de forma digital.</p></div></div>
+<div class="screen" id="screen-settings"><div class="ai-card"><div class="ai-card-title"><i class="fas fa-sliders"></i> Ajustes</div><p style="color:var(--gy);font-size:13px;margin-top:12px">Configuración de cuenta, notificaciones y preferencias.</p></div></div>
+
+</div>
+</div>
+</div>
+
+<script>
+let currentView='client';
+let lastScreen='dashboard';
+
+function switchView(view){
+currentView=view;
+document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+event.target.classList.add('active');
+if(view==='client'){
+document.getElementById('userName').textContent='Carlos García';
+document.getElementById('userAvatar').className='avatar av-client';
+document.getElementById('userAvatar').textContent='CG';
+}else{
+document.getElementById('userName').textContent='Adrián Revilla';
+document.getElementById('userAvatar').className='avatar av-lawyer';
+document.getElementById('userAvatar').textContent='AR';
+}
+goTo('dashboard');
+}
+
+function goTo(screen){
+lastScreen=screen;
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('visible'));
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+const nav=document.querySelector('[data-nav="'+screen+'"]');
+if(nav)nav.classList.add('active');
+
+if(screen==='dashboard'){
+document.getElementById('topbarTitle').textContent='Dashboard';
+document.getElementById(currentView+'-dashboard').classList.add('visible');
+}else if(screen==='cases'){
+document.getElementById('topbarTitle').textContent='Mis Casos';
+document.getElementById(currentView+'-cases').classList.add('visible');
+}else if(screen==='chat'){
+document.getElementById('topbarTitle').textContent='Chat IA';
+document.getElementById('screen-chat').classList.add('visible');
+}else if(screen==='predictions'){
+document.getElementById('topbarTitle').textContent='Predicciones';
+document.getElementById('screen-predictions').classList.add('visible');
+}else if(screen==='signature'){
+document.getElementById('topbarTitle').textContent='Firma Digital';
+document.getElementById('screen-signature').classList.add('visible');
+}else if(screen==='settings'){
+document.getElementById('topbarTitle').textContent='Ajustes';
+document.getElementById('screen-settings').classList.add('visible');
+}
+}
+
+function goBack(){
+goTo(lastScreen);
+}
+
+function openCase(caseId){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('visible'));
+document.getElementById('topbarTitle').textContent='Detalle del caso';
+document.getElementById('detail-'+caseId).classList.add('visible');
+// Reset tabs to first
+const detail=document.getElementById('detail-'+caseId);
+detail.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===0));
+detail.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('visible',i===0));
+}
+
+function showTab(caseId,tab){
+const panels=document.querySelectorAll('[data-case="'+caseId+'"]');
+const tabs=document.getElementById('tabs-'+caseId);
+tabs.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));
+event.target.classList.add('active');
+panels.forEach(p=>p.classList.toggle('visible',p.dataset.tab===tab));
+}
+
+function filterCases(filter,btn){
+document.querySelectorAll('#client-cases .filter-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+const rows=document.querySelectorAll('#clientCaseList .case-row');
+let count=0;
+rows.forEach(r=>{
+const show=filter==='all'||r.dataset.status===filter;
+r.style.display=show?'flex':'none';
+if(show)count++;
+});
+document.getElementById('caseCount').textContent=count+' caso'+(count!==1?'s':'');
+}
+
+function filterLawyerCases(filter,btn){
+document.querySelectorAll('#lawyer-cases .filter-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+const rows=document.querySelectorAll('#lawyerCaseList .case-row');
+let count=0;
+rows.forEach(r=>{
+const show=filter==='all'||r.dataset.lstatus===filter;
+r.style.display=show?'flex':'none';
+if(show)count++;
+});
+document.getElementById('lawyerCaseCount').textContent=count+' caso'+(count!==1?'s':'');
+}
+</script>
+</body>
+</html>
