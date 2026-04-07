@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexPulse DB Schema — MVP v1</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--border2:#444c56;
+--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+--blue:#58a6ff;--blue-bg:rgba(88,166,255,.08);--blue-border:rgba(88,166,255,.2);
+--green:#3fb950;--green-bg:rgba(63,185,80,.08);--green-border:rgba(63,185,80,.2);
+--amber:#d29922;--amber-bg:rgba(210,153,34,.08);--amber-border:rgba(210,153,34,.2);
+--red:#f85149;--red-bg:rgba(248,81,73,.08);--red-border:rgba(248,81,73,.2);
+--purple:#bc8cff;--purple-bg:rgba(188,140,255,.08);--purple-border:rgba(188,140,255,.2);
+--coral:#ffa28b;--coral-bg:rgba(255,162,139,.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:40px 24px;max-width:1200px;margin:0 auto}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.sub{color:var(--text2);font-size:14px;margin-bottom:32px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.full{grid-column:1/-1}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+
+.tbl{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.tbl:hover{border-color:var(--border2)}
+.tbl-h{padding:14px 18px;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.tbl-h .badge{font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;font-family:'JetBrains Mono',monospace}
+.tbl-r{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;font-size:13px;border-bottom:1px solid rgba(48,54,61,.5)}
+.tbl-r:last-child{border-bottom:none}
+.tbl-r:nth-child(even){background:var(--surface2)}
+.tbl-r .col-name{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.tbl-r .col-type{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px}
+.tbl-r .col-note{color:var(--text2);font-size:12px;max-width:200px;text-align:right}
+
+.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.02em;font-family:'JetBrains Mono',monospace}
+.pk{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+.fk{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.enc{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.2)}
+
+.section-title{font-size:18px;font-weight:600;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
+.section-title .dot{width:8px;height:8px;border-radius:50%}
+
+.status-flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:24px}
+.st{font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);color:var(--text2);background:var(--surface2);transition:all .2s;cursor:default}
+.st:hover{border-color:var(--border2);color:var(--text)}
+.st.blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
+.st.green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.st.red{background:var(--red-bg);color:var(--red);border-color:rgba(248,81,73,.2)}
+.arrow{color:var(--text3);font-size:14px}
+
+.relations{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin:24px 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2.2;color:var(--text2)}
+.relations .hl{color:var(--blue)}
+.relations .hl2{color:var(--green)}
+.relations .hl3{color:var(--amber)}
+
+.legend{display:flex;gap:20px;margin-bottom:32px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+
+.note-box{background:var(--surface2);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:14px 18px;margin:24px 0;font-size:13px;color:var(--text2);line-height:1.7}
+.note-box strong{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<h1>LexPulse <span class="mono" style="color:var(--purple);font-weight:400;font-size:20px">DB schema</span></h1>
+<p class="sub">PostgreSQL (Cloud SQL) + Cloud Storage &bull; MVP v1 &bull; All tables filtered by firm_id (multitenancy)</p>
+
+<div class="legend">
+<div class="legend-item"><span class="tag pk">PK</span> primary key</div>
+<div class="legend-item"><span class="tag fk">FK</span> foreign key</div>
+<div class="legend-item"><span class="tag enc">ENC</span> encrypted</div>
+</div>
+
+<!-- FIRMS -->
+<div class="grid">
+<div class="tbl full">
+<div class="tbl-h" style="background:var(--blue-bg);color:var(--blue)">firms <span class="badge" style="background:var(--blue-border);color:var(--blue)">root table</span></div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">name</span><span class="col-type">varchar(255)</span></div>
+<div class="tbl-r"><span class="col-name">cif</span><span class="col-type">varchar(20)</span><span class="col-note">tax ID</span></div>
+<div class="tbl-r"><span class="col-name">email</span><span class="col-type">varchar(255)</span></div>
+<div class="tbl-r"><span class="col-name">phone</span><span class="col-type">varchar(20)</span></div>
+<div class="tbl-r"><span class="col-name">address</span><span class="col-type">text</span></div>
+<div class="tbl-r"><span class="col-name">plan</span><span class="col-type">enum</span><span class="col-note">free / pro / enterprise</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+</div>
+
+<!-- LAWYERS + CLIENTS -->
+<div class="section-title"><span class="dot" style="background:var(--green)"></span> People</div>
+<div class="grid">
+<div class="tbl">
+<div class="tbl-h" style="background:var(--green-bg);color:var(--green)">lawyers</div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">firm_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ firms</span></div>
+<div class="tbl-r"><span class="col-name">name</span><span class="col-type">varchar(255)</span></div>
+<div class="tbl-r"><span class="col-name">email</span><span class="col-type">varchar(255)</span><span class="col-note">unique, login</span></div>
+<div class="tbl-r"><span class="col-name">phone</span><span class="col-type">varchar(20)</span></div>
+<div class="tbl-r"><span class="col-name">bar_number</span><span class="col-type">varchar(50)</span><span class="col-note">num colegiado</span></div>
+<div class="tbl-r"><span class="col-name">specialty</span><span class="col-type">varchar(100)</span><span class="col-note">laboral, familia...</span></div>
+<div class="tbl-r"><span class="col-name">role</span><span class="col-type">enum</span><span class="col-note">admin / lawyer</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+
+<div class="tbl">
+<div class="tbl-h" style="background:var(--green-bg);color:var(--green)">clients</div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">firm_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ firms</span></div>
+<div class="tbl-r"><span class="col-name">name</span><span class="col-type">varchar(255)</span></div>
+<div class="tbl-r"><span class="col-name">email</span><span class="col-type">varchar(255)</span><span class="col-note">unique, login</span></div>
+<div class="tbl-r"><span class="col-name">phone</span><span class="col-type">varchar(20)</span></div>
+<div class="tbl-r"><span class="col-name">dni <span class="tag enc">ENC</span></span><span class="col-type">varchar(20)</span><span class="col-note">encrypted at rest</span></div>
+<div class="tbl-r"><span class="col-name">address</span><span class="col-type">text</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+</div>
+
+<!-- CASES -->
+<div class="section-title"><span class="dot" style="background:var(--amber)"></span> Cases — the core</div>
+<div class="grid">
+<div class="tbl full">
+<div class="tbl-h" style="background:var(--amber-bg);color:var(--amber)">cases <span class="badge" style="background:var(--amber-border);color:var(--amber)">core table</span></div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">firm_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ firms</span></div>
+<div class="tbl-r"><span class="col-name">client_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ clients</span></div>
+<div class="tbl-r"><span class="col-name">lawyer_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ lawyers (nullable)</span></div>
+<div class="tbl-r"><span class="col-name">title</span><span class="col-type">varchar(255)</span></div>
+<div class="tbl-r"><span class="col-name">description</span><span class="col-type">text</span><span class="col-note">client's own words</span></div>
+<div class="tbl-r"><span class="col-name">case_type</span><span class="col-type">enum</span><span class="col-note">laboral / bancario / inmobiliario / familia / mercantil / contratos / extranjeria / otro</span></div>
+<div class="tbl-r"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">see flow below ↓</span></div>
+<div class="tbl-r"><span class="col-name">price</span><span class="col-type">decimal</span><span class="col-note">EUR, nullable until quoted</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+<div class="tbl-r"><span class="col-name">updated_at</span><span class="col-type">timestamptz</span></div>
+<div class="tbl-r"><span class="col-name">resolved_at</span><span class="col-type">timestamptz</span><span class="col-note">nullable</span></div>
+</div>
+</div>
+
+<div class="status-flow">
+<span class="st">new</span><span class="arrow">→</span>
+<span class="st blue">ai_analysis</span><span class="arrow">→</span>
+<span class="st blue">reviewed</span><span class="arrow">→</span>
+<span class="st blue">in_progress</span><span class="arrow">→</span>
+<span class="st">pending_docs</span><span class="arrow">→</span>
+<span class="st">pending_signature</span><span class="arrow">→</span>
+<span class="st green">resolved</span><span class="arrow">→</span>
+<span class="st green">closed</span>
+<span style="width:100%;font-size:12px;color:var(--text3);margin-top:4px">Any active status can also → <span class="st red" style="display:inline-flex">cancelled</span></span>
+</div>
+
+<!-- CASE CHILDREN -->
+<div class="section-title"><span class="dot" style="background:var(--purple)"></span> Case data</div>
+<div class="grid">
+<div class="tbl">
+<div class="tbl-h" style="background:var(--purple-bg);color:var(--purple)">case_activity</div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">case_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ cases</span></div>
+<div class="tbl-r"><span class="col-name">actor_type</span><span class="col-type">enum</span><span class="col-note">lawyer / client / ai / system</span></div>
+<div class="tbl-r"><span class="col-name">actor_id</span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">action</span><span class="col-type">enum</span><span class="col-note">status_change / note / assignment / doc_upload</span></div>
+<div class="tbl-r"><span class="col-name">detail</span><span class="col-type">text</span></div>
+<div class="tbl-r"><span class="col-name">previous_status</span><span class="col-type">varchar(30)</span></div>
+<div class="tbl-r"><span class="col-name">new_status</span><span class="col-type">varchar(30)</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+
+<div class="tbl">
+<div class="tbl-h" style="background:var(--purple-bg);color:var(--purple)">documents</div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">case_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ cases</span></div>
+<div class="tbl-r"><span class="col-name">uploaded_by</span><span class="col-type">uuid</span><span class="col-note">lawyer or client</span></div>
+<div class="tbl-r"><span class="col-name">uploader_type</span><span class="col-type">enum</span><span class="col-note">lawyer / client</span></div>
+<div class="tbl-r"><span class="col-name">filename</span><span class="col-type">varchar(255)</span><span class="col-note">original name</span></div>
+<div class="tbl-r"><span class="col-name">storage_path</span><span class="col-type">text</span><span class="col-note">Cloud Storage URL</span></div>
+<div class="tbl-r"><span class="col-name">file_type</span><span class="col-type">varchar(50)</span><span class="col-note">pdf, jpg, docx...</span></div>
+<div class="tbl-r"><span class="col-name">file_size</span><span class="col-type">integer</span><span class="col-note">bytes</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+
+<div class="tbl">
+<div class="tbl-h" style="background:var(--purple-bg);color:var(--purple)">messages</div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">case_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ cases</span></div>
+<div class="tbl-r"><span class="col-name">sender_type</span><span class="col-type">enum</span><span class="col-note">client / lawyer / ai</span></div>
+<div class="tbl-r"><span class="col-name">sender_id</span><span class="col-type">uuid</span><span class="col-note">null for ai</span></div>
+<div class="tbl-r"><span class="col-name">content</span><span class="col-type">text</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+
+<div class="tbl">
+<div class="tbl-h" style="background:var(--blue-bg);color:var(--blue)">ai_analyses <span class="badge" style="background:var(--blue-border);color:var(--blue)">AI</span></div>
+<div class="tbl-r"><span class="col-name">id <span class="tag pk">PK</span></span><span class="col-type">uuid</span></div>
+<div class="tbl-r"><span class="col-name">case_id <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ cases</span></div>
+<div class="tbl-r"><span class="col-name">summary</span><span class="col-type">text</span><span class="col-note">AI case summary</span></div>
+<div class="tbl-r"><span class="col-name">relevant_laws</span><span class="col-type">text</span><span class="col-note">laws identified</span></div>
+<div class="tbl-r"><span class="col-name">relevant_jurisprudence</span><span class="col-type">text</span><span class="col-note">similar cases</span></div>
+<div class="tbl-r"><span class="col-name">suggested_strategy</span><span class="col-type">text</span><span class="col-note">AI recommendation</span></div>
+<div class="tbl-r"><span class="col-name">disclaimer_accepted</span><span class="col-type">boolean</span></div>
+<div class="tbl-r"><span class="col-name">reviewed_by_lawyer <span class="tag fk">FK</span></span><span class="col-type">uuid</span><span class="col-note">→ lawyers (nullable)</span></div>
+<div class="tbl-r"><span class="col-name">reviewed_at</span><span class="col-type">timestamptz</span><span class="col-note">nullable</span></div>
+<div class="tbl-r"><span class="col-name">created_at</span><span class="col-type">timestamptz</span></div>
+</div>
+</div>
+
+<!-- RELATIONSHIPS -->
+<div class="section-title"><span class="dot" style="background:var(--coral)"></span> Relationships</div>
+<div class="relations">
+<span class="hl">firms</span><br>
+&nbsp;&nbsp;├── <span class="hl2">lawyers</span> (1:N)<br>
+&nbsp;&nbsp;├── <span class="hl2">clients</span> (1:N)<br>
+&nbsp;&nbsp;└── <span class="hl3">cases</span> (1:N)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── client_id → <span class="hl2">clients</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── lawyer_id → <span class="hl2">lawyers</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span style="color:var(--purple)">case_activity</span> (1:N)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span style="color:var(--purple)">documents</span> (1:N)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span style="color:var(--purple)">messages</span> (1:N)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="hl">ai_analyses</span> (1:N)
+</div>
+
+<div class="note-box">
+<strong>Security notes:</strong> DNI encrypted at rest. All tables filtered by firm_id (row-level security). Documents in Cloud Storage with signed URLs (time-limited access). Passwords hashed with bcrypt. All timestamps in UTC.
+</div>
+
+</body>
+</html>

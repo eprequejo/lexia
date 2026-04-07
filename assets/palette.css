@@ -1,0 +1,26 @@
+/* ============================================
+   Lexia — CSS Palette
+   ============================================ */
+:root {
+  --bk:#0B0B0F;
+  --bl:#3B82F6;
+  --gr:#00FFB2;
+  --vi:#7C3AED;
+  --wh:#FFFFFF;
+  --gy:#8A8F98;
+  --dc:#111118;
+  --db:#1E1E2A
+}
+/* ── Semantic colors (used inline) ── */
+/* red:     #FF4444 / #FF6B6B  — problem cards, errors */
+/* yellow:  #FBBF24            — stars, ratings */
+/* ── Gradients ── */
+/* primary:  linear-gradient(135deg, var(--bl), var(--vi))           — CTAs */
+/* text:     linear-gradient(135deg, var(--bl), var(--gr), var(--vi)) — gradient text */
+/* metric:   linear-gradient(135deg, var(--gr), var(--bl))           — numbers */
+/* ── Opacity patterns ── */
+/* blue bg:    rgba(59, 130, 246, .1)  */
+/* violet bg:  rgba(124, 58, 237, .1)  */
+/* green bg:   rgba(0, 255, 178, .1)   */
+/* red bg:     rgba(255, 68, 68, .1)   */
+/* white bg:   rgba(255, 255, 255, .03-.05) */
