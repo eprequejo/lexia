@@ -42,11 +42,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);heigh
 .screen{display:none}.screen.visible{display:block}
 
 /* STATS */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
-.stat{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:18px 20px}
-.stat-label{font-size:11px;color:var(--gy);margin-bottom:6px;font-weight:500}
-.stat-value{font-size:24px;font-weight:700}
-.stat-sub{font-size:11px;color:var(--gr);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+.stat{background:var(--dc);border:1px solid var(--db);border-radius:12px;padding:14px 10px;text-align:center}
+.stat.gradient{background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(124,58,237,.06));border-color:rgba(59,130,246,.15)}
+.stat-label{font-size:10px;color:var(--gy);margin-bottom:4px;font-weight:500}
+.stat-value{font-size:20px;font-weight:700}
+.stat-value-gr{color:var(--gr)}
+.stat-value-bl{color:var(--bl)}
+.stat-value-vi{color:var(--vi)}
+.stat-sub{font-size:10px;color:var(--gr);margin-top:3px}
 
 /* CASE LIST */
 .case-list{display:flex;flex-direction:column;gap:10px}
@@ -165,7 +169,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);heigh
 .typing-dots span:nth-child(3){animation-delay:.3s}
 @keyframes typingBounce{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
 
-@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.stats,.metrics-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.stats{grid-template-columns:repeat(3,1fr)}.metrics-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -215,9 +219,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);heigh
 <!-- ===== CLIENT DASHBOARD ===== -->
 <div class="screen visible" id="client-dashboard">
 <div class="stats">
-<div class="stat"><div class="stat-label">Casos activos</div><div class="stat-value">3</div><div class="stat-sub">1 pendiente de documentación</div></div>
-<div class="stat"><div class="stat-label">Último mensaje</div><div class="stat-value" style="font-size:18px">Hace 2h</div><div class="stat-sub">Adrián R. actualizó tu caso</div></div>
-<div class="stat"><div class="stat-label">Próximo paso</div><div class="stat-value" style="font-size:18px">Firmar</div><div class="stat-sub">Contrato de arrendamiento</div></div>
+<div class="stat"><div class="stat-label">Casos activos</div><div class="stat-value">3</div><div class="stat-sub">1 pendiente docs</div></div>
+<div class="stat"><div class="stat-label">Último mensaje</div><div class="stat-value" style="font-size:16px">Hace 2h</div><div class="stat-sub">Adrián R.</div></div>
+<div class="stat"><div class="stat-label">Próximo paso</div><div class="stat-value" style="font-size:16px">Firmar</div><div class="stat-sub">Arrendamiento</div></div>
+<div class="stat gradient"><div class="stat-label">Prob. éxito</div><div class="stat-value stat-value-gr">86%</div><div class="stat-sub">↑ Jurisprudencia</div></div>
+<div class="stat gradient"><div class="stat-label">Ahorro est.</div><div class="stat-value stat-value-bl">€4.800</div><div class="stat-sub">↑ vs tradicional</div></div>
+<div class="stat gradient"><div class="stat-label">Tiempo medio</div><div class="stat-value stat-value-vi">14 días</div><div class="stat-sub">↓ 60% más rápido</div></div>
 </div>
 <div class="section-label">Tus casos</div>
 <div class="case-list">
@@ -411,11 +418,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bk);color:var(--wh);heigh
 
 <!-- ===== LAWYER DASHBOARD ===== -->
 <div class="screen" id="lawyer-dashboard">
-<div class="metrics-grid">
-<div class="metric"><div class="metric-value" style="color:var(--bl)">12</div><div class="metric-label">Casos activos</div></div>
-<div class="metric"><div class="metric-value" style="color:var(--vi)">3</div><div class="metric-label">Pendientes revisión IA</div></div>
-<div class="metric"><div class="metric-value" style="color:var(--gr)">28</div><div class="metric-label">Resueltos este mes</div></div>
-<div class="metric"><div class="metric-value">€8.400</div><div class="metric-label">Facturación mes</div></div>
+<div class="stats">
+<div class="stat"><div class="stat-label">Casos activos</div><div class="stat-value">12</div><div class="stat-sub">3 revisión IA</div></div>
+<div class="stat"><div class="stat-label">Resueltos mes</div><div class="stat-value">28</div><div class="stat-sub">↑ 12% vs anterior</div></div>
+<div class="stat"><div class="stat-label">Facturación</div><div class="stat-value">€8.400</div><div class="stat-sub">↑ €1.200</div></div>
+<div class="stat gradient"><div class="stat-label">Tasa éxito</div><div class="stat-value stat-value-gr">94%</div><div class="stat-sub">↑ 28/30</div></div>
+<div class="stat gradient"><div class="stat-label">Tiempo medio</div><div class="stat-value stat-value-bl">18 días</div><div class="stat-sub">↓ vs 45 días</div></div>
+<div class="stat gradient"><div class="stat-label">Satisfacción</div><div class="stat-value stat-value-vi">4.8/5</div><div class="stat-sub">↑ 12 valoraciones</div></div>
 </div>
 <div class="section-label">Casos recientes</div>
 <div class="case-list">
